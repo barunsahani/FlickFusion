@@ -216,28 +216,79 @@ if (h.trailer_key) {
 
 
 
+// let personalHost = null;
+// async function refreshPersonalRows() {
+//   if (!personalHost) return;
+//   personalHost.replaceChildren();
+//   if (!myList.length) return;
+//   try {
+//     const [mine, picks] = await Promise.all([
+//       post('/api/cards', { ids: myList }),
+//       post('/api/profile', { ids: myList, n: 20 })]);
+//     personalHost.append(rowEl('My List', mine.movies.slice().reverse()));
+//     if (picks.movies.length) personalHost.append(rowEl('Top Picks for You', picks.movies, { showMatch: true, sub: `based on ${myList.length} title${myList.length > 1 ? 's' : ''} in your list` }));
+//     const last = myList[myList.length - 1];
+//     const d = await api(`/api/movie/${last}?n=20`);
+//     personalHost.append(rowEl(`Because you added ${d.title}`, d.similar, { showMatch: true }));
+//   } catch (e) { console.warn(e); }
+// }
+
+
+
 let personalHost = null;
+
 async function refreshPersonalRows() {
   if (!personalHost) return;
+
   personalHost.replaceChildren();
   if (!myList.length) return;
+
   try {
     const [mine, picks] = await Promise.all([
       post('/api/cards', { ids: myList }),
-      post('/api/profile', { ids: myList, n: 20 })]);
-    personalHost.append(rowEl('My List', mine.movies.slice().reverse()));
-    if (picks.movies.length) personalHost.append(rowEl('Top Picks for You', picks.movies, { showMatch: true, sub: `based on ${myList.length} title${myList.length > 1 ? 's' : ''} in your list` }));
-    const last = myList[myList.length - 1];
-    const d = await api(`/api/movie/${last}?n=20`);
-    personalHost.append(rowEl(`Because you added ${d.title}`, d.similar, { showMatch: true }));
-  } catch (e) { console.warn(e); }
+      post('/api/hybrid-profile', {
+        ids: myList,
+        n: 20
+      })
+    ]);
+
+    personalHost.append(
+      rowEl('My List', mine.movies.slice().reverse())
+    );
+
+    if (picks.movies.length) {
+      personalHost.append(
+        rowEl(
+          'Hybrid Picks For You',
+          picks.movies,
+          {
+            showMatch: true,
+            // sub: 'Combining movie similarities and rating patterns'
+          }
+        )
+      );
+    }
+  } catch (e) {
+    console.error('Hybrid recommendations failed:', e);
+  }
 }
+
 
 async function showHome() {
   setActive('home'); window.scrollTo(0, 0);
   app.replaceChildren(el('div', { class: 'loading', style: 'padding-top:40vh' }, el('div', { class: 'spinner' }), 'Loading…'));
   try {
-    const [d, live] = await Promise.all([api('/api/home'), api('/api/live').catch(() => ({ enabled: false, rows: [], hero: null }))]);
+    // const [d, live] = await Promise.all([api('/api/home'), api('/api/live').catch(() => ({ enabled: false, rows: [], hero: null }))]);
+    const [d, live, indian] = await Promise.all([
+    api('/api/home'),
+    api('/api/live').catch(() => ({
+      enabled: false,
+      rows: [],
+      hero: null
+    })),
+    api('/api/indian-movies').catch(() => ({ movies: [] }))
+    ]);
+    
     const menu = $('#genreMenu');
     if (!menu.childElementCount) {
       menu.append(el('div', { class: 'dd-menu-inner' }, d.genres.map(g =>
@@ -245,7 +296,50 @@ async function showHome() {
     }
     personalHost = el('div');
     const liveRows = live.enabled ? live.rows.map(r => rowEl(r.title, r.movies)) : [];
-    const rows = el('div', { class: 'rows' }, personalHost, liveRows, d.rows.map(r => rowEl(r.title, r.movies)));
+    // const rows = el('div', { class: 'rows' }, personalHost, liveRows, d.rows.map(r => rowEl(r.title, r.movies)));
+    // Create the Indian Movies row
+    const indianRow = indian.movies.length
+      ? rowEl('Indian Movies', indian.movies)
+      : null;
+
+    // Render all homepage rows
+    const rows = el(
+      'div',
+      { class: 'rows' },
+      personalHost,
+      liveRows,
+      indianRow,
+      d.rows.map(r => rowEl(r.title, r.movies))
+    );
+    // Filter Indian movies from the existing homepage movie data
+  // const indianMovies = d.rows
+  //   .flatMap(r => r.movies || [])
+  //   .filter((movie, index, arr) =>
+  //     arr.findIndex(m => m.id === movie.id) === index &&
+  //     (
+  //       (movie.original_language || '').toLowerCase() === 'hi' ||
+  //       (movie.original_language || '').toLowerCase() === 'ta' ||
+  //       (movie.original_language || '').toLowerCase() === 'te' ||
+  //       (movie.original_language || '').toLowerCase() === 'ml' ||
+  //       (movie.original_language || '').toLowerCase() === 'kn' ||
+  //       (movie.original_language || '').toLowerCase() === 'bn' ||
+  //       (movie.original_language || '').toLowerCase() === 'mr' ||
+  //       (movie.original_language || '').toLowerCase() === 'pa'
+  //     )
+  //   );
+
+  // const indianMoviesRow = indianMovies.length
+  //   ? rowEl('🇮🇳 Indian Movies', indianMovies)
+  //   : null;
+
+  // const rows = el(
+  //   'div',
+  //   { class: 'rows' },
+  //   personalHost,
+  //   liveRows,
+  //   indianMoviesRow,
+  //   d.rows.map(r => rowEl(r.title, r.movies))
+  // );
     app.replaceChildren(heroEl(live.enabled && live.hero ? live.hero : d.hero), rows);
     if (!live.enabled) showKeyBanner(live.error === 'bad_key'
       ? 'Your TMDB API key was rejected. Check the key in your .env file.'
@@ -275,12 +369,13 @@ async function showMyList() {
       el('div', { class: 'empty', text: 'Add movies with the + button and FlimFlix Match will build recommendations from your taste.' })));
     return;
   }
-  const [mine, picks] = await Promise.all([post('/api/cards', { ids: myList }), post('/api/profile', { ids: myList, n: 24 })]);
+  // const [mine, picks] = await Promise.all([post('/api/cards', { ids: myList }), post('/api/profile', { ids: myList, n: 24 })]);
+  const [mine, picks] = await Promise.all([post('/api/cards', { ids: myList }), post('/api/hybrid-profile', { ids: myList, n: 24 })]);
   const view = el('div', { class: 'view' }, el('h1', { text: 'My List' }),
     el('div', { class: 'sub', text: `${myList.length} title${myList.length > 1 ? 's' : ''}` }),
     el('div', { class: 'grid' }, mine.movies.slice().reverse().map(m => movieCard(m))),
     el('h1', { style: 'margin:44px 0 6px', text: 'Recommended from your list' }),
-    el('div', { class: 'sub', text: 'Movies closest to the average taste of everything you added' }),
+    el('div', { class: 'sub', text: 'Recommendations combining movie content and user-rating patterns' }),
     el('div', { class: 'grid' }, picks.movies.map(m => movieCard(m, true))));
   app.replaceChildren(view);
 }
