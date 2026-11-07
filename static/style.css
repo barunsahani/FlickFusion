@@ -80,8 +80,10 @@ button {
 
 .links {
   display: flex;
-  gap: 20px;
-  font-size: .9rem
+  gap: 30px;
+  font-size: 1.1rem;
+  font-family: cursive;
+  /* opacity: 0.5; */
 }
 
 .links a {
@@ -115,13 +117,17 @@ button {
   display: none
 }
 
+
 .dd-menu-inner {
   background: rgba(0, 0, 0, .92);
   border: 1px solid #333;
-  border-top: 2px solid #fff;
+  border-top: 2px solid #ffffff53;
   display: grid;
   grid-template-columns: repeat(2, 150px);
-  padding: 14px 8px
+  padding: 14px 8px;
+  color: white;
+  opacity: 1;
+
 }
 
 .dropdown:hover .dd-menu {
@@ -136,7 +142,8 @@ button {
 
 .dd-menu a:hover {
   color: #fff;
-  text-decoration: underline
+  text-decoration: underline;
+  opacity: 1
 }
 
 .nav-right {

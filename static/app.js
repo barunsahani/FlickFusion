@@ -108,7 +108,7 @@ const isUpcoming = m => !!m.release_date && new Date(m.release_date + 'T00:00:00
 const fmtDate = d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 
 /* ---------------------------------------------------------------- My List */
-const LIST_KEY = 'flimflix_list_v1';
+const LIST_KEY = 'flickfusion_list_v1';
 let myList = [];
 try { myList = JSON.parse(localStorage.getItem(LIST_KEY) || '[]'); } catch { myList = []; }
 const inList = id => myList.includes(id);
@@ -173,27 +173,27 @@ const yt = m => `https://www.youtube.com/results?search_query=${encodeURICompone
 
 function heroEl(h) {
   const hero = el('section', { class: 'hero' });
-  
-const videoLayer = el('div', { class: 'hero-video' });
-hero.append(videoLayer);
 
-// Keep the existing backdrop as the fallback.
-// If YouTube reports an error, remove only the video.
-if (h.trailer_key) {
-  const frame = el('iframe', {
-    title: `${h.title} trailer`,
-    src: `https://www.youtube.com/embed/${encodeURIComponent(h.trailer_key)}?autoplay=1&mute=1&controls=0&loop=1&playlist=${encodeURIComponent(h.trailer_key)}&playsinline=1&enablejsapi=1`,
-    allow: 'autoplay; encrypted-media; picture-in-picture',
-    referrerpolicy: 'strict-origin-when-cross-origin'
-  });
+  const videoLayer = el('div', { class: 'hero-video' });
+  hero.append(videoLayer);
 
-  videoLayer.append(frame);
+  // Keep the existing backdrop as the fallback.
+  // If YouTube reports an error, remove only the video.
+  if (h.trailer_key) {
+    const frame = el('iframe', {
+      title: `${h.title} trailer`,
+      src: `https://www.youtube.com/embed/${encodeURIComponent(h.trailer_key)}?autoplay=1&mute=1&controls=0&loop=1&playlist=${encodeURIComponent(h.trailer_key)}&playsinline=1&enablejsapi=1`,
+      allow: 'autoplay; encrypted-media; picture-in-picture',
+      referrerpolicy: 'strict-origin-when-cross-origin'
+    });
 
-  // A browser iframe error can trigger this fallback.
-  frame.addEventListener('error', () => {
-    videoLayer.replaceChildren();
-  });
-}
+    videoLayer.append(frame);
+
+    // A browser iframe error can trigger this fallback.
+    frame.addEventListener('error', () => {
+      videoLayer.replaceChildren();
+    });
+  }
 
   paintHeader(hero, h, 'hero-poster', 'hero-blur');
   const addBtn = el('button', { class: 'btn btn-grey', 'data-add': h.id, onclick: () => toggleList(h) });
@@ -280,15 +280,15 @@ async function showHome() {
   try {
     // const [d, live] = await Promise.all([api('/api/home'), api('/api/live').catch(() => ({ enabled: false, rows: [], hero: null }))]);
     const [d, live, indian] = await Promise.all([
-    api('/api/home'),
-    api('/api/live').catch(() => ({
-      enabled: false,
-      rows: [],
-      hero: null
-    })),
-    api('/api/indian-movies').catch(() => ({ movies: [] }))
+      api('/api/home'),
+      api('/api/live').catch(() => ({
+        enabled: false,
+        rows: [],
+        hero: null
+      })),
+      api('/api/indian-movies').catch(() => ({ movies: [] }))
     ]);
-    
+
     const menu = $('#genreMenu');
     if (!menu.childElementCount) {
       menu.append(el('div', { class: 'dd-menu-inner' }, d.genres.map(g =>
@@ -312,34 +312,34 @@ async function showHome() {
       d.rows.map(r => rowEl(r.title, r.movies))
     );
     // Filter Indian movies from the existing homepage movie data
-  // const indianMovies = d.rows
-  //   .flatMap(r => r.movies || [])
-  //   .filter((movie, index, arr) =>
-  //     arr.findIndex(m => m.id === movie.id) === index &&
-  //     (
-  //       (movie.original_language || '').toLowerCase() === 'hi' ||
-  //       (movie.original_language || '').toLowerCase() === 'ta' ||
-  //       (movie.original_language || '').toLowerCase() === 'te' ||
-  //       (movie.original_language || '').toLowerCase() === 'ml' ||
-  //       (movie.original_language || '').toLowerCase() === 'kn' ||
-  //       (movie.original_language || '').toLowerCase() === 'bn' ||
-  //       (movie.original_language || '').toLowerCase() === 'mr' ||
-  //       (movie.original_language || '').toLowerCase() === 'pa'
-  //     )
-  //   );
+    // const indianMovies = d.rows
+    //   .flatMap(r => r.movies || [])
+    //   .filter((movie, index, arr) =>
+    //     arr.findIndex(m => m.id === movie.id) === index &&
+    //     (
+    //       (movie.original_language || '').toLowerCase() === 'hi' ||
+    //       (movie.original_language || '').toLowerCase() === 'ta' ||
+    //       (movie.original_language || '').toLowerCase() === 'te' ||
+    //       (movie.original_language || '').toLowerCase() === 'ml' ||
+    //       (movie.original_language || '').toLowerCase() === 'kn' ||
+    //       (movie.original_language || '').toLowerCase() === 'bn' ||
+    //       (movie.original_language || '').toLowerCase() === 'mr' ||
+    //       (movie.original_language || '').toLowerCase() === 'pa'
+    //     )
+    //   );
 
-  // const indianMoviesRow = indianMovies.length
-  //   ? rowEl('🇮🇳 Indian Movies', indianMovies)
-  //   : null;
+    // const indianMoviesRow = indianMovies.length
+    //   ? rowEl('🇮🇳 Indian Movies', indianMovies)
+    //   : null;
 
-  // const rows = el(
-  //   'div',
-  //   { class: 'rows' },
-  //   personalHost,
-  //   liveRows,
-  //   indianMoviesRow,
-  //   d.rows.map(r => rowEl(r.title, r.movies))
-  // );
+    // const rows = el(
+    //   'div',
+    //   { class: 'rows' },
+    //   personalHost,
+    //   liveRows,
+    //   indianMoviesRow,
+    //   d.rows.map(r => rowEl(r.title, r.movies))
+    // );
     app.replaceChildren(heroEl(live.enabled && live.hero ? live.hero : d.hero), rows);
     if (!live.enabled) showKeyBanner(live.error === 'bad_key'
       ? 'Your TMDB API key was rejected. Check the key in your .env file.'
@@ -366,7 +366,7 @@ async function showMyList() {
   setActive('mylist'); window.scrollTo(0, 0);
   if (!myList.length) {
     app.replaceChildren(el('div', { class: 'view' }, el('h1', { text: 'My List' }),
-      el('div', { class: 'empty', text: 'Add movies with the + button and FlimFlix Match will build recommendations from your taste.' })));
+      el('div', { class: 'empty', text: 'Add movies with the + button and FlickFusion Match will build recommendations from your taste.' })));
     return;
   }
   // const [mine, picks] = await Promise.all([post('/api/cards', { ids: myList }), post('/api/profile', { ids: myList, n: 24 })]);
@@ -448,16 +448,16 @@ function renderModal(m) {
         el('div', { class: 'm' },
           // withMatch ? el('span', { class: 'match', text: `${s.match}% Match` }) : el('span', { text: s.rating ? `★ ${s.rating.toFixed(1)}` : '' }),
           withMatch && s.match != null
-          ? el('span', { class: 'match', text: `${s.match}% Match` })
-          : el('span', { text: s.rating ? `★ ${s.rating.toFixed(1)}` : '' }),
+            ? el('span', { class: 'match', text: `${s.match}% Match` })
+            : el('span', { text: s.rating ? `★ ${s.rating.toFixed(1)}` : '' }),
           el('span', { text: s.year || '' }))));
   };
   const sim = el('div', { class: 'm-sim' },
     el('h3', { text: 'More Like This' }),
     el('div', {
       class: 'why', text: m.live
-        ? `New release — matched by the FlimFlix Match model against the 30,000-movie catalog by plot, themes and genres.`
-        : `Recommended by the FlimFlix model — similar plot, themes, genres, studio and franchise to “${m.title}”.`
+        ? `New release — matched by the FLICKFUSION Match model against the 30,000-movie catalog by plot, themes and genres.`
+        : `Recommended by the FLICKFUSION model — similar plot, themes, genres, studio and franchise to “${m.title}”.`
     }),
     el('div', { class: 'sim-grid' }, (m.similar || []).map(s => simCard(s, true))));
   if (m.tmdb_similar && m.tmdb_similar.length) {
