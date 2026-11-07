@@ -55,9 +55,9 @@ Reciprocal Rank Fusion (RRF)** to produce a final personalized list.
 FLICKFUSION combines three recommendation approaches:
 
   -----------------------------------------------------------------------
-  Technique                           How it works
+  Technique                          |   How it works
   ----------------------------------- -----------------------------------
-  Content-Based Filtering             Builds a movie profile from
+  Content-Based Filtering  :          Builds a movie profile from
                                       attributes such as overview,
                                       genres, production companies,
                                       language, release era, title words,
@@ -65,11 +65,11 @@ FLICKFUSION combines three recommendation approaches:
                                       Similarity is calculated using
                                       feature representations.
 
-  Item-Based Collaborative Filtering  Uses item-feature relationships to
+  Item-Based Collaborative Filtering : Uses item-feature relationships to
                                       find movies related to the movies
                                       selected by the user.
 
-  User-Based Collaborative Filtering  Uses user preferences patterns to 
+  User-Based Collaborative Filtering : Uses user preferences patterns to 
                                       identify movies associated with similar user tastes.
 
   -----------------------------------------------------------------------
