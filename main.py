@@ -1,5 +1,5 @@
 """
-FlimFLix - Netflix-style movie web app.
+FLICKFUSION - Netflix-style movie web app.
 
     uvicorn main:app --reload
     open http://127.0.0.1:8000
@@ -21,6 +21,10 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+
+from collaborative import CollaborativeRecommender
+
+cf_model = CollaborativeRecommender()
 
 from recommender import Recommender
 
@@ -46,7 +50,7 @@ try:
 except Exception:
     POSTER_CACHE = {}
 
-app = FastAPI(title="FlimFlix", version="4.0")
+app = FastAPI(title="FLICKFUSION", version="4.0")
 
 model: Recommender = Recommender.load(os.path.join(BASE, "model"))
 meta = model.meta
@@ -70,7 +74,7 @@ def _pool(mask, score, size=60):
 
 POOLS = {
     "Trending Now": _pool(_known & (meta["year"].fillna(0).values >= 2012), _pop_rank),
-    "Popular on FlimFlix": _pool(_known, meta["popularity"].values),
+    "Popular on FlickFusion": _pool(_known, meta["popularity"].values),
     "Top Rated": _pool(meta["vote_count"].values >= 1500, meta["wr"].values),
     "Critically Acclaimed Classics": _pool(
         _known & (meta["year"].fillna(9999).values < 1990), meta["wr"].values),
@@ -337,7 +341,7 @@ def home():
     hero_idx = random.choice(HERO_POOL)
     hero = model.detail(int(meta.iloc[hero_idx]["id"]))
     rows = []
-    for name in ["Trending Now", "Popular on FlimFlix", "Top Rated"]:
+    for name in ["Trending Now", "Popular on FlickFusion", "Top Rated"]:
         rows.append({"title": name, "movies": _cards(_sample(POOLS[name]))})
     for g in random.sample(GENRE_ROWS[:8], 4):
         rows.append({"title": f"{GENRE_LABEL.get(g, g)} Movies", "genre": g,
@@ -657,3 +661,159 @@ app.mount("/static", StaticFiles(directory=os.path.join(BASE, "static")), name="
 @app.get("/")
 def index():
     return FileResponse(os.path.join(BASE, "static", "index.html"))
+
+
+
+# @app.post("/api/hybrid-profile")
+# def collaborative_profile(p: Profile):
+#     movie_ids = cf_model.recommend(
+#         p.ids[-30:],
+#         min(max(p.n, 1), 40)
+#     )
+
+#     # Convert TMDB IDs to the cards your frontend expects
+#     cards = []
+
+#     for movie_id in movie_ids:
+#         idx = model.id_to_idx.get(movie_id)
+
+#         if idx is not None:
+#             cards.append(model.card(idx))
+
+#     return {"movies": cards}
+
+
+@app.get("/api/indian-movies")
+def indian_movies(page: int = Query(1, ge=1, le=500)):
+    """Fetch popular Indian movies directly from TMDB."""
+
+    if not TMDB_API_KEY:
+        raise HTTPException(503, "TMDB API key is missing")
+
+    data = tmdb(
+        "/discover/movie",
+        with_origin_country="IN",
+        sort_by="popularity.desc",
+        page=page,
+        region="IN",
+    )
+
+    movies = [
+        live_card(movie)
+        for movie in data.get("results", [])
+        if movie.get("poster_path") and movie.get("title")
+    ]
+
+    return {"movies": movies, "page": page}
+
+
+@app.post("/api/hybrid-profile")
+def collaborative_profile(p: Profile):
+    # Limit the number of recommendations.
+    limit = min(max(p.n, 1), 40)
+
+    # Use the user's selected movies as input.
+    selected_ids = list(dict.fromkeys(p.ids[-30:]))
+    selected_set = set(selected_ids)
+
+    # 1. Content-based recommendations.
+    content_cards = model.for_profile(selected_ids, limit)
+    content_ids = [
+        int(movie["id"])
+        for movie in content_cards
+        if movie.get("id") is not None
+    ]
+
+    # 2. Item-based collaborative filtering.
+    item_ids = cf_model.recommend(selected_ids, n=limit)
+
+    # 3. User-based collaborative filtering.
+    user_ids = cf_model.recommend_user_based(selected_ids, n=limit)
+
+
+
+    # ADD THE PRINT STATEMENTS HERE 👇
+    print("CONTENT:", content_ids[:10])
+    print("ITEM-BASED:", item_ids[:10])
+    print("USER-BASED:", user_ids[:10])
+
+    print(
+    "USER-BASED IDS IN CONTENT CATALOG:",
+    [movie_id for movie_id in user_ids
+     if movie_id in model.id_to_idx]
+    )
+
+    # 4. Combine the three ranked lists using weighted Reciprocal Rank Fusion.
+    # Lower rank numbers mean better recommendations.
+    weights = {
+        "content": 0.45,
+        "item": 0.30,
+        "user": 0.25,
+    }
+
+    ranked_lists = [
+        (content_ids, weights["content"]),
+        (item_ids, weights["item"]),
+        (user_ids, weights["user"]),
+    ]
+
+    hybrid_scores = {}
+
+    for movie_ids, weight in ranked_lists:
+        for rank, movie_id in enumerate(movie_ids, start=1):
+            movie_id = int(movie_id)
+
+            # Never recommend a movie the user already selected.
+            if movie_id in selected_set:
+                continue
+
+            # Ignore movies not present in our local movie catalog.
+            if movie_id not in model.id_to_idx:
+                continue
+
+            hybrid_scores[movie_id] = (
+                hybrid_scores.get(movie_id, 0.0)
+                + weight / (60 + rank)
+            )
+
+    # 5. Sort movies by their combined hybrid scores.
+    sorted_ids = sorted(
+        hybrid_scores,
+        key=hybrid_scores.get,
+        reverse=True
+    )[:limit]
+
+
+    # DEBUG: Print the final hybrid recommendations and scores
+    print("FINAL HYBRID IDS:", sorted_ids[:10])
+
+    print("FINAL HYBRID SCORES:", {
+        movie_id: round(hybrid_scores[movie_id], 5)
+        for movie_id in sorted_ids[:10]
+    })
+
+    print(
+    "USER-BASED MOVIES IN FINAL:",
+    [movie_id for movie_id in sorted_ids if movie_id in user_ids]
+    )
+
+    print(
+        "ITEM-BASED MOVIES IN FINAL:",
+        [movie_id for movie_id in sorted_ids if movie_id in item_ids]
+    )
+
+    # 6. Convert movie IDs into cards for the frontend.
+    cards = [
+        model.card(model.id_to_idx[movie_id])
+        for movie_id in sorted_ids
+    ]
+
+    return {
+        "movies": cards,
+        "method": "hybrid",
+        "models_used": [
+            "content-based",
+            "item-based collaborative filtering",
+            "user-based collaborative filtering",
+        ],
+    }

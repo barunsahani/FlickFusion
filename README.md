@@ -1,4 +1,4 @@
-# FLIMFLIX – Netflix-style movie recommender
+# FLICKFUSION – Netflix-style movie recommender
 
 A Netflix-like web app (hero banner, scrolling rows, search, detail modal, **More Like This**, My List
 with personalised picks) powered by an improved content-based recommendation model.
