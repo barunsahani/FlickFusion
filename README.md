@@ -1,7 +1,27 @@
-# FLICKFUSION –  Movie Recommender
+# FLICKFUSION –  A Hybrid Movie Recommendation System Using Collaborative and Content-Based Filtering
+Discover Movies. Match Your Taste. Experience More.
 
-A Netflix-like web app (hero banner, scrolling rows, search, detail modal, **More Like This**, My List
-with personalised picks) powered by an improved collaborative filtering (user-based and item-based) and content-based recommendation model. A  Hybrid Model made for providing recomendation based on user taste.
+FLICKFUSION is a Netflix-inspired movie recommendation web application designed to provide personalized movie suggestions based on users' interests, preferences, and viewing patterns.
+
+The application features a modern interface with a hero banner, horizontally scrolling movie collections, search functionality, movie detail modals, a More Like This section, and a My List feature with personalized movie picks.
+
+At its core, FLICKFUSION uses a Hybrid Recommendation Model that combines three recommendation techniques:
+1. User-Based Collaborative Filtering: Recommends movies based on the preferences of users with similar tastes.
+2. Item-Based Collaborative Filtering: Recommends movies similar to those a user has previously liked or rated.
+3. Content-Based Filtering: Suggests movies based on attributes such as genres, descriptions, and other movie characteristics.
+By combining these techniques, FLICKFUSION aims to deliver more relevant, accurate, and personalized movie recommendations while improving the overall movie discovery experience.
+
+
+Key Features
+- Netflix-inspired responsive UI.
+- Personalized movie recommendations.
+- Hybrid recommendation algorithm.
+- Movie search functionality.
+- Movie details and information modal.
+- More Like This recommendations.
+- My List for saving favourite movies.
+- Multiple movie categories and collections.
+- 
 
 ## Run it
 
