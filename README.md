@@ -1,4 +1,4 @@
-::: {align="center"}
+
 # 🎬 FLICKFUSION
 
 ### Discover Movies. Match Your Taste. Experience More.
@@ -9,8 +9,7 @@ Content-Based Filtering**
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![scikit-learn](https://img.shields.io/badge/ML-scikit--learn-orange?logo=scikitlearn)](https://scikit-learn.org/)
-[![License](https://img.shields.io/badge/License-Not%20Specified-lightgrey)]()
-:::
+
 
 ------------------------------------------------------------------------
 
@@ -70,9 +69,9 @@ FLICKFUSION combines three recommendation approaches:
                                       find movies related to the movies
                                       selected by the user.
 
-  User-Based Collaborative Filtering  Uses user preference patterns to
-                                      identify movies associated with
-                                      similar user tastes.
+  User-Based Collaborative Filtering  Uses user preferences patterns to 
+                                      identify movies associated with similar user tastes.
+
   -----------------------------------------------------------------------
 
 ### Hybrid ranking
@@ -417,6 +416,5 @@ Contributions, suggestions, and bug reports are welcome.
 
 ------------------------------------------------------------------------
 
-::: {align="center"}
 **FLICKFUSION --- Your taste. Your movies. Your next favourite.**
-:::
+
