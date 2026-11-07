@@ -1,7 +1,7 @@
-# FLICKFUSION – Netflix-style movie recommender
+# FLICKFUSION –  Movie Recommender
 
 A Netflix-like web app (hero banner, scrolling rows, search, detail modal, **More Like This**, My List
-with personalised picks) powered by an improved content-based recommendation model.
+with personalised picks) powered by an improved collaborative filtering (user-based and item-based) and content-based recommendation model. A  Hybrid Model made for providing recomendation based on user taste.
 
 ## Run it
 
