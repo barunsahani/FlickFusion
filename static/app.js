@@ -25,7 +25,7 @@ function toast(msg) {
   const t = $('#toast'); t.textContent = msg; t.classList.remove('hidden');
   clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.add('hidden'), 1800);
 }
-/* Dataset image paths are from 2017 and many are dead -> ask the server for TMDB's current path. */
+/* Dataset image paths are from 2020 and many are dead -> ask the server for TMDB's current path. */
 let keyWarned = false;
 const freshCache = new Map();      // id -> {poster, poster_large, backdrop} | null
 const freshWaiting = new Map();    // id -> [resolve, ...]

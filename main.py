@@ -104,7 +104,7 @@ def _cards(idxs):
 
 
 # ===================================================================== LIVE TMDB DATA
-# The training dataset is a 2017 snapshot, so new / upcoming films come straight from TMDB.
+# The training dataset is a 2020 snapshot, so new / upcoming films come straight from TMDB.
 IMG = "https://image.tmdb.org/t/p"
 _TTL = 6 * 3600
 _tmdb_cache: dict = {}
@@ -530,7 +530,7 @@ def movie(movie_id: int, n: int = Query(18, ge=1, le=40)):
     return d
 
 
-    # not in the 2017 training catalog -> new release: details from TMDB, picks from the model
+    # not in the 2020 training catalog -> new release: details from TMDB, picks from the model
     try:
         j = tmdb(f"/movie/{movie_id}")
     except HTTPException as e:
@@ -579,7 +579,7 @@ def cards(p: Profile):
 
 
 def poster_info(movie_id: int):
-    """Current poster/backdrop paths for a movie (dataset paths date from 2017 and many are dead)."""
+    """Current poster/backdrop paths for a movie (dataset paths date from 2020 and many are dead)."""
     key = str(movie_id)
     if key in POSTER_CACHE:
         return POSTER_CACHE[key]
